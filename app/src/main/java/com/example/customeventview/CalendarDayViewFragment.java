@@ -6,10 +6,12 @@ import android.content.ClipDescription;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -126,7 +128,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                             int calculatedWidth = startTimeCalculation(filteredEvents);
                             if (calculatedWidth > 0) {
                                 parentWidth = parentWidth - calculatedWidth;
-                                eventWidth = parentWidth/endTimeEventsSize;
+                                eventWidth = parentWidth/size;
                                 //adjusting the left margin again. Since there is a difference in width.
                                 int count = 0;
                                 int avgWidth = eventWidth;
@@ -160,7 +162,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 //                            left = (int) (left + EVENT_GAP);
 //                        }
                         textViewParams.setMargins(left, top, 0, 0);
-                        eventsView.addView(getTextView(textViewParams, eventObject.getName(), k));
+                        eventsView.addView(getTextView(textViewParams, eventObject.getName(), k, ContextCompat.getColor(getContext(), R.color.colorPrimary)));
                     }
                 }
             }
@@ -173,20 +175,23 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
         super.onActivityCreated(savedInstanceState);
     }
 
-    private TextView getTextView(RelativeLayout.LayoutParams textViewParams, String eventName, int id) {
+    private TextView getTextView(RelativeLayout.LayoutParams textViewParams, String eventName, int id, int eventColor) {
         TextView textView = new TextView(getContext());
         textView.setId(id);
         textView.setLayoutParams(textViewParams);
         textView.setText(eventName);
-        textView.setTextColor(Color.MAGENTA);
-        textView.setBackgroundColor(Color.BLACK);
+        textView.setTextColor(Color.WHITE);
+//        textView.setBackgroundColor(Color.BLACK);
+        textView.setBackgroundResource(R.drawable.event_bg);
+        GradientDrawable drawable = (GradientDrawable) textView.getBackground();
+        drawable.setColor(eventColor);
         textView.setTextSize(14);
         int leftPadding = (int) convertDpToPixel(5, getContext());
         int rightPadding = (int) convertDpToPixel(5, getContext());
         textView.setPadding(leftPadding, 0, rightPadding, 0);
         textView.setGravity(Gravity.CENTER_VERTICAL);
         textView.setTag(eventName + TEXT_VIEW_DEFAULT_TAG);
-        textView.setAlpha((float) 0.5);
+//        textView.setAlpha((float) 0.5);
         textView.setOnLongClickListener(this);
         return textView;
     }
@@ -842,22 +847,22 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 
         eventsList.add(eventObject);
 
-        //event 20
-        eventObject = new EventObject();
-        eventObject.setId("20");
-        eventObject.setName("2PM to 4PM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 14);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 16);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
+//        //event 20
+//        eventObject = new EventObject();
+//        eventObject.setId("20");
+//        eventObject.setName("6.30AM to 8AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
+//        startCalendar.set(Calendar.MINUTE, 30);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 8);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
         Collections.sort(eventsList, new CustomDurationComparator());
     }
