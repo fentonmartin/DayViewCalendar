@@ -121,48 +121,25 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                         //send end time to compare with start time
                         EventObject filteredObject = filteredEvents.get(size - 1);
                         if (!filteredObject.isMarked()) {
-                            int endTimeEventsSize = checkEndTimeEvents(filteredEvents, parentWidth, j);
+                            List<EventObject> allOverlappingEvents = checkEndTimeEvents(filteredEvents, parentWidth, j);
+                            int endTimeEventsSize = allOverlappingEvents.size();
                             eventWidth = parentWidth / endTimeEventsSize; //Calculating the width based on events
                             showLog("Total event count:::::" + (endTimeEventsSize));
 
                             int calculatedWidth = startTimeCalculation(filteredEvents);
                             if (calculatedWidth > 0) {
                                 parentWidth = parentWidth - calculatedWidth;
-                                eventWidth = parentWidth/size;
+                                eventWidth = parentWidth/endTimeEventsSize;
                                 //adjusting the left margin again. Since there is a difference in width.
                                 int count = 0;
                                 int avgWidth = eventWidth;
-                                for (EventObject tempObj: filteredEvents) {
+                                for (EventObject tempObj: allOverlappingEvents) {
                                     tempObj.setLeftMargin(count*avgWidth);
                                     count++;
                                 }
                             }
-
-                        } else {
-                            eventWidth = parentWidth / (filteredObject.getEventsCount());
+                            drawOverLappingEvents(allOverlappingEvents, eventWidth);
                         }
-                    } else {
-                        eventWidth = parentWidth;
-                    }
-                    for (int k = 0; k < size; k++) {
-                        EventObject eventObject = filteredEvents.get(k);
-                        int[] startTime = getStartTime(eventObject.getStartTime());
-                        int[] endTime = getEndTime(eventObject.getEndTime());
-                        //0 -> hour & 1 -> minute
-                        int eventHeight = (int) ((HOUR_VIEW_HEIGHT * endTime[0]) + endTime[1] + DIVIDER_LINE_MARGIN_TOP)
-                                - (int) ((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP);
-                        //No size conversion, pass direct pixels for width
-                        RelativeLayout.LayoutParams textViewParams = new RelativeLayout.LayoutParams((int) (eventWidth - EVENT_GAP),
-                                (int) convertDpToPixel(eventHeight, getContext()));
-                        int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP, getContext());
-                        int left = eventObject.getLeftMargin();
-//                        if (k != 0) {
-//                            left = (int) (left + EVENT_GAP);
-//                        } else if (eventObject.getLeftMargin() > 0) {
-//                            left = (int) (left + EVENT_GAP);
-//                        }
-                        textViewParams.setMargins(left, top, 0, 0);
-                        eventsView.addView(getTextView(textViewParams, eventObject.getName(), k, ContextCompat.getColor(getContext(), R.color.colorPrimary)));
                     }
                 }
             }
@@ -170,9 +147,28 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
         return view;
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    private void drawOverLappingEvents(List<EventObject> allOverlappingEvents, int eventWidth) {
+        int size = allOverlappingEvents.size();
+        for (int k = 0; k < size; k++) {
+            EventObject eventObject = allOverlappingEvents.get(k);
+            int[] startTime = getStartTime(eventObject.getStartTime());
+            int[] endTime = getEndTime(eventObject.getEndTime());
+            //0 -> hour & 1 -> minute
+            int eventHeight = (int) ((HOUR_VIEW_HEIGHT * endTime[0]) + endTime[1] + DIVIDER_LINE_MARGIN_TOP)
+                    - (int) ((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP);
+            //No size conversion, pass direct pixels for width
+            RelativeLayout.LayoutParams textViewParams = new RelativeLayout.LayoutParams((int) (eventWidth - EVENT_GAP),
+                    (int) convertDpToPixel(eventHeight, getContext()));
+            int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP, getContext());
+            int left = eventObject.getLeftMargin();
+//                        if (k != 0) {
+//                            left = (int) (left + EVENT_GAP);
+//                        } else if (eventObject.getLeftMargin() > 0) {
+//                            left = (int) (left + EVENT_GAP);
+//                        }
+            textViewParams.setMargins(left, top, 0, 0);
+            eventsView.addView(getTextView(textViewParams, eventObject.getName(), k, ContextCompat.getColor(getContext(), R.color.colorPrimary)));
+        }
     }
 
     private TextView getTextView(RelativeLayout.LayoutParams textViewParams, String eventName, int id, int eventColor) {
@@ -208,7 +204,8 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
         return filteredEvents;
     }
 
-    private synchronized int checkEndTimeEvents(List<EventObject> filteredEvents, int totalWidth, int hourLineValue) {
+    private synchronized List<EventObject> checkEndTimeEvents(List<EventObject> filteredEvents, int totalWidth, int hourLineValue) {
+        List<EventObject> finalList = new ArrayList<>();
         HashSet<EventObject> mainList = new HashSet<>();
         mainList.addAll(filteredEvents);//adding all the events. For multiple events from same hour line.
         Set<String> eventIds = new TreeSet<>();
@@ -261,7 +258,8 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                 }
             }
         }
-        return mainList.size();
+        finalList.addAll(mainList);
+        return finalList;
     }
 
     private synchronized List<EventObject> checkAdditionalEndTimeDependents(EventObject eventObject, Set<String> eventIds) {
@@ -626,90 +624,90 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 
         eventsList.add(eventObject);
 
-        //event 7
-        eventObject = new EventObject();
-        eventObject.setId("7");
-        eventObject.setName("6AM to 7AM event");
+//        //event 7
+//        eventObject = new EventObject();
+//        eventObject.setId("7");
+//        eventObject.setName("6AM to 7AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
+//        //event 8
+//        eventObject = new EventObject();
+//        eventObject.setId("8");
+//        eventObject.setName("7AM to 8AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 7);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 8);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
+//        //event 9
+//        eventObject = new EventObject();
+//        eventObject.setId("9");
+//        eventObject.setName("7.30AM to 8.30AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 7);
+//        startCalendar.set(Calendar.MINUTE, 30);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 8);
+//        endCalendar.set(Calendar.MINUTE, 30);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
-        eventsList.add(eventObject);
+//        //event 10
+//        eventObject = new EventObject();
+//        eventObject.setId("10");
+//        eventObject.setName("8AM to 9AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 8);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 9);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
-        //event 8
-        eventObject = new EventObject();
-        eventObject.setId("8");
-        eventObject.setName("7AM to 8AM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 7);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 8);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
-
-        //event 9
-        eventObject = new EventObject();
-        eventObject.setId("9");
-        eventObject.setName("7.30AM to 8.30AM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 7);
-        startCalendar.set(Calendar.MINUTE, 30);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 8);
-        endCalendar.set(Calendar.MINUTE, 30);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
-
-        //event 10
-        eventObject = new EventObject();
-        eventObject.setId("10");
-        eventObject.setName("8AM to 9AM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 8);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 9);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
-
-        //event 11
-        eventObject = new EventObject();
-        eventObject.setId("11");
-        eventObject.setName("7AM to 11AM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 7);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 11);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
+//        //event 11
+//        eventObject = new EventObject();
+//        eventObject.setId("11");
+//        eventObject.setName("7AM to 11AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 7);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 11);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
 //        //event 12
 //        eventObject = new EventObject();
@@ -728,56 +726,56 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 //
 //        eventsList.add(eventObject);
 
-        //event 13
-        eventObject = new EventObject();
-        eventObject.setId("13");
-        eventObject.setName("6AM to 7AM event");
+//        //event 13
+//        eventObject = new EventObject();
+//        eventObject.setId("13");
+//        eventObject.setName("6AM to 7AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
+//        //event 14
+//        eventObject = new EventObject();
+//        eventObject.setId("14");
+//        eventObject.setName("6AM to 7AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
-
-        //event 14
-        eventObject = new EventObject();
-        eventObject.setId("14");
-        eventObject.setName("6AM to 7AM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
-
-        //event 15
-        eventObject = new EventObject();
-        eventObject.setId("15");
-        eventObject.setName("6AM to 7AM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
+//        //event 15
+//        eventObject = new EventObject();
+//        eventObject.setId("15");
+//        eventObject.setName("6AM to 7AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 6);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 7);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
 //        //event 16
 //        eventObject = new EventObject();
@@ -813,39 +811,39 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 
         eventsList.add(eventObject);
 
-        //event 18
-        eventObject = new EventObject();
-        eventObject.setId("18");
-        eventObject.setName("9AM to 11AM event");
+//        //event 18
+//        eventObject = new EventObject();
+//        eventObject.setId("18");
+//        eventObject.setName("9AM to 11AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 9);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 11);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 9);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 11);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
-
-        //event 19
-        eventObject = new EventObject();
-        eventObject.setId("19");
-        eventObject.setName("10AM to 11AM event");
-
-        startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, 10);
-        startCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setStartTime(startCalendar);
-
-        endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 11);
-        endCalendar.set(Calendar.MINUTE, 0);
-        eventObject.setEndTime(endCalendar);
-
-        eventsList.add(eventObject);
+//        //event 19
+//        eventObject = new EventObject();
+//        eventObject.setId("19");
+//        eventObject.setName("10AM to 11AM event");
+//
+//        startCalendar = Calendar.getInstance();
+//        startCalendar.set(Calendar.HOUR_OF_DAY, 10);
+//        startCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setStartTime(startCalendar);
+//
+//        endCalendar = Calendar.getInstance();
+//        endCalendar.set(Calendar.HOUR_OF_DAY, 11);
+//        endCalendar.set(Calendar.MINUTE, 0);
+//        eventObject.setEndTime(endCalendar);
+//
+//        eventsList.add(eventObject);
 
 //        //event 20
 //        eventObject = new EventObject();
