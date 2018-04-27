@@ -228,8 +228,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                 if (startHour == startTimeCalendar.get(Calendar.HOUR_OF_DAY)) {
                     //do nothing
 
-                } else if (checkTimeRange(startTimeCalendar, endTimeCalendar, eventObject.getEndTime()) ||
-                        endHour == (endTimeCalendar.get(Calendar.HOUR_OF_DAY))) {
+                } else if (checkTimeRange(startTimeCalendar, endTimeCalendar, eventObject.getEndTime())) {
                     eventIds.add(object.getId());
                     showLog("Event ID" + object.getId() + "::Start Hour: " + startTimeCalendar.get(Calendar.HOUR_OF_DAY) + "::End Hour: " + endTimeCalendar.get(Calendar.HOUR_OF_DAY));
                     List<EventObject> eventObjectList = checkAdditionalEndTimeDependents(object, eventIds);
@@ -863,6 +862,40 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 //        eventObject.setEndTime(endCalendar);
 //
 //        eventsList.add(eventObject);
+
+        //event 21
+        eventObject = new EventObject();
+        eventObject.setId("21");
+        eventObject.setName("1PM to 2PM event");
+
+        startCalendar = Calendar.getInstance();
+        startCalendar.set(Calendar.HOUR_OF_DAY, 13);
+        startCalendar.set(Calendar.MINUTE, 0);
+        eventObject.setStartTime(startCalendar);
+
+        endCalendar = Calendar.getInstance();
+        endCalendar.set(Calendar.HOUR_OF_DAY, 14);
+        endCalendar.set(Calendar.MINUTE, 0);
+        eventObject.setEndTime(endCalendar);
+
+        eventsList.add(eventObject);
+
+        //event 22
+        eventObject = new EventObject();
+        eventObject.setId("22");
+        eventObject.setName("2PM to 2:30PM event");
+
+        startCalendar = Calendar.getInstance();
+        startCalendar.set(Calendar.HOUR_OF_DAY, 14);
+        startCalendar.set(Calendar.MINUTE, 0);
+        eventObject.setStartTime(startCalendar);
+
+        endCalendar = Calendar.getInstance();
+        endCalendar.set(Calendar.HOUR_OF_DAY, 14);
+        endCalendar.set(Calendar.MINUTE, 30);
+        eventObject.setEndTime(endCalendar);
+
+        eventsList.add(eventObject);
 
         Collections.sort(eventsList, new CustomDurationComparator());
     }
