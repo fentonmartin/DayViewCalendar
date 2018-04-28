@@ -264,7 +264,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                 if (startHour == startTimeCalendar.get(Calendar.HOUR_OF_DAY)) {
                     //do nothing
 
-                } else if (checkTimeRange(startTimeCalendar, endTimeCalendar, eventObject.getEndTime())) {
+                } else if (!object.isMarked() && checkTimeRange(startTimeCalendar, endTimeCalendar, eventObject.getEndTime())) {
                     eventIds.add(object.getId());
                     showLog("Event ID" + object.getId() + "::Start Hour: " + startTimeCalendar.get(Calendar.HOUR_OF_DAY) + "::End Hour: " + endTimeCalendar.get(Calendar.HOUR_OF_DAY));
                     List<EventObject> eventObjectList = checkAdditionalEndTimeDependents(object, eventIds);
@@ -366,7 +366,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
         int calculatedWidth = 0;
         for (EventObject eventObject : filteredEvents) {//considering multiple events on same hour line
             for (EventObject object : eventsList) {
-                if (!filteredEvents.contains(object) && object.isMarked()) {
+                if (!filteredEvents.contains(object) && !object.isMarked()) {
                     Calendar startTimeCalendar = object.getStartTime();
                     Calendar endTimeCalendar = object.getEndTime();
                     if (checkTimeRange(startTimeCalendar, endTimeCalendar, eventObject.getStartTime())) {
