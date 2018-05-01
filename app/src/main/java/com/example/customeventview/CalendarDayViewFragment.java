@@ -64,6 +64,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
     private static final int STANDARD_EVENT_TEXT_SIZE = 14;
     private static final int ADDITIONAL_EVENT_TEXT_SIZE = 32;
     private static final String ADDITIONAL_EVENT_ID_SEPARATOR = ":";
+    public boolean showNowLine = true;
 
 
     public static CalendarDayViewFragment newInstance() {
@@ -176,6 +177,19 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                             }
                         }
                     }
+                }
+                if (showNowLine) {
+                    View nowLineView = new View(getContext());
+                    nowLineView.setBackgroundColor(Color.MAGENTA);
+                    RelativeLayout.LayoutParams viewParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
+                            (int) convertDpToPixel(1, getContext()));
+                    Calendar nowCalendar = Calendar.getInstance();
+                    int currentHour = nowCalendar.get(Calendar.HOUR_OF_DAY);
+                    int currentMinutes = nowCalendar.get(Calendar.MINUTE);
+                    int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * currentHour) + currentMinutes + DIVIDER_LINE_MARGIN_TOP, getContext());
+                    viewParams.setMargins(0, top, 0, 0);
+                    nowLineView.setLayoutParams(viewParams);
+                    eventsView.addView(nowLineView);
                 }
             }
         }, 100);
