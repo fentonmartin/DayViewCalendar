@@ -145,8 +145,8 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                             }
                             if (allOverlappingEvents.size() > MAX_EVENTS_SIZE) {
                                 Collections.sort(allOverlappingEvents, new CustomDurationComparator());
-                                float maxPercent = 80.0f;
-                                float minPercent = 20.0f;
+                                float maxPercent = 85.0f;
+                                float minPercent = 15.0f;
                                 float totalPercent = 100.0f;
                                 int threeEventsWidth = (int) (parentWidth * (maxPercent / totalPercent));
                                 showLog("Three events width:::::" + threeEventsWidth);
@@ -163,7 +163,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                                     count++;
                                 }
                                 //draw first three events
-                                drawOverLappingEvents(subList, eventWidth, Gravity.CENTER_VERTICAL, STANDARD_EVENT_TEXT_SIZE);
+                                drawOverLappingEvents(subList, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
                                 //additional event overlay
                                 List<EventObject> additionalList = allOverlappingEvents.subList(MAX_EVENTS_SIZE, allOverlappingEvents.size());
                                 //creating additional event object overlay
