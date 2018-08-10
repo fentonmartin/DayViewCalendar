@@ -61,8 +61,8 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
     private static final int MAX_EVENTS_SIZE = 3;
     private Random rand = new Random();
     private static int MAX_RANDOM_VALUE_LIMIT = 1000;
-    private static final int STANDARD_EVENT_TEXT_SIZE = 14;
-    private static final int ADDITIONAL_EVENT_TEXT_SIZE = 32;
+    private static final int STANDARD_EVENT_TEXT_SIZE = 12;
+    private static final int ADDITIONAL_EVENT_TEXT_SIZE = 18;
     private static final String ADDITIONAL_EVENT_ID_SEPARATOR = ":";
     public boolean showNowLine = true;
 
@@ -170,10 +170,10 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                                 List<EventObject> tempList = new ArrayList<>();
                                 tempList.add(getAdditionalEventsObject(j, threeEventsWidth, additionalList));
                                 //draw additional event
-                                drawOverLappingEvents(tempList, additionalEventsWidth, Gravity.CENTER, ADDITIONAL_EVENT_TEXT_SIZE);
+                                drawOverLappingEvents(tempList, additionalEventsWidth, Gravity.CENTER_HORIZONTAL, ADDITIONAL_EVENT_TEXT_SIZE);
                             } else {
                                 //if size <=3 then draw the events
-                                drawOverLappingEvents(allOverlappingEvents, eventWidth, Gravity.CENTER_VERTICAL, STANDARD_EVENT_TEXT_SIZE);
+                                drawOverLappingEvents(allOverlappingEvents, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
                             }
                         }
                     }
@@ -593,15 +593,15 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
         }
         additionalEvenObject.setId(sb.toString().substring(0, sb.toString().length() - 1));
 
-        Calendar startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR_OF_DAY, hourLine);
-        startCalendar.set(Calendar.MINUTE, 0);
+        Calendar startCalendar = additionalList.get(3).getStartTime();
         additionalEvenObject.setStartTime(startCalendar);
 
-        Calendar endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, hourLine + 1);
-        endCalendar.set(Calendar.MINUTE, 0);
+        Calendar endCalendar = Calendar.getInstance();//default height to 30 mins
+        endCalendar.set(Calendar.HOUR_OF_DAY, startCalendar.get(Calendar.HOUR_OF_DAY));
+        endCalendar.set(Calendar.MINUTE, startCalendar.get(Calendar.MINUTE));
+        endCalendar.add(Calendar.MINUTE, 30);
         additionalEvenObject.setEndTime(endCalendar);
+
         return additionalEvenObject;
     }
 
