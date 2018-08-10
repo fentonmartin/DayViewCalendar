@@ -14,6 +14,23 @@ public class EventObject {
     private int leftMargin;
     private int eventWidth;
 
+    public EventObject() {
+
+    }
+
+    public EventObject(String id, String name, int startHour, int startMinute, int endHour, int endMinute) {
+        this.id = id;
+        this.name = name;
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.set(Calendar.HOUR_OF_DAY, startHour);
+        startCalendar.set(Calendar.MINUTE, startMinute);
+        this.startTime = startCalendar;
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.set(Calendar.HOUR_OF_DAY, endHour);
+        endCalendar.set(Calendar.MINUTE, endMinute);
+        this.endTime = endCalendar;
+    }
+
     public long getDurationInMillSeconds() {
         return getEndTime().getTimeInMillis() - getStartTime().getTimeInMillis();
     }
