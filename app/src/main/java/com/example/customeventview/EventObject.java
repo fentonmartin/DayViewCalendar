@@ -1,7 +1,6 @@
 package com.example.customeventview;
 
 import java.util.Calendar;
-import java.util.Comparator;
 
 public class EventObject {
 

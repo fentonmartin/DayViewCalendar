@@ -29,8 +29,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -110,89 +113,89 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 
         setCalendarEvents();
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handler.removeCallbacks(this);
-
-                //setting the events
-                for (int j = 0; j < dayHourTimes.length; j++) {
-                    int parentWidth = eventsView.getWidth();
-                    List<EventObject> filteredEvents = getCalendarEvents(j);
-                    int size = filteredEvents.size();
-                    int eventWidth;
-                    if (size > 0) {
-                        //send end time to compare with start time
-                        EventObject filteredObject = filteredEvents.get(size - 1);
-                        if (!filteredObject.isMarked()) {
-                            List<EventObject> allOverlappingEvents = checkEndTimeEvents(filteredEvents, parentWidth, j);
-                            int endTimeEventsSize = allOverlappingEvents.size();
-                            eventWidth = parentWidth / endTimeEventsSize; //Calculating the width based on events
-                            showLog("Total event count:::::" + (endTimeEventsSize));
-
-                            int calculatedWidth = startTimeCalculation(filteredEvents);
-                            if (calculatedWidth > 0) {
-                                parentWidth = parentWidth - calculatedWidth;
-                                eventWidth = parentWidth / endTimeEventsSize;
-                                //adjusting the left margin again. Since there is a difference in width.
-                                int count = 0;
-                                int avgWidth = eventWidth;
-                                for (EventObject tempObj : allOverlappingEvents) {
-                                    tempObj.setLeftMargin(count * avgWidth);
-                                    count++;
-                                }
-                            }
-                            if (allOverlappingEvents.size() > MAX_EVENTS_SIZE) {
-                                Collections.sort(allOverlappingEvents, new CustomDurationComparator());
-                                float maxPercent = 85.0f;
-                                float minPercent = 15.0f;
-                                float totalPercent = 100.0f;
-                                int threeEventsWidth = (int) (parentWidth * (maxPercent / totalPercent));
-                                showLog("Three events width:::::" + threeEventsWidth);
-                                int additionalEventsWidth = (int) (parentWidth * (minPercent / totalPercent));
-                                showLog("Additional Events width:::::" + additionalEventsWidth);
-                                List<EventObject> subList = allOverlappingEvents.subList(0, MAX_EVENTS_SIZE);
-                                //adjusting the left margin again. Since there is a difference in width.
-                                //for the first three events
-                                int count = 0;
-                                eventWidth = threeEventsWidth / MAX_EVENTS_SIZE;
-                                int avgWidth = eventWidth;
-                                for (EventObject tempObj : subList) {
-                                    tempObj.setLeftMargin(count * avgWidth);
-                                    count++;
-                                }
-                                //draw first three events
-                                drawOverLappingEvents(subList, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
-                                //additional event overlay
-                                List<EventObject> additionalList = allOverlappingEvents.subList(MAX_EVENTS_SIZE, allOverlappingEvents.size());
-                                //creating additional event object overlay
-                                List<EventObject> tempList = new ArrayList<>();
-                                tempList.add(getAdditionalEventsObject(j, threeEventsWidth, additionalList));
-                                //draw additional event
-                                drawOverLappingEvents(tempList, additionalEventsWidth, Gravity.CENTER_HORIZONTAL, ADDITIONAL_EVENT_TEXT_SIZE);
-                            } else {
-                                //if size <=3 then draw the events
-                                drawOverLappingEvents(allOverlappingEvents, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
-                            }
-                        }
-                    }
-                }
-                if (showNowLine) {
-                    View nowLineView = new View(getContext());
-                    nowLineView.setBackgroundColor(Color.MAGENTA);
-                    RelativeLayout.LayoutParams viewParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
-                            (int) convertDpToPixel(1, getContext()));
-                    Calendar nowCalendar = Calendar.getInstance();
-                    int currentHour = nowCalendar.get(Calendar.HOUR_OF_DAY);
-                    int currentMinutes = nowCalendar.get(Calendar.MINUTE);
-                    int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * currentHour) + currentMinutes + DIVIDER_LINE_MARGIN_TOP, getContext());
-                    viewParams.setMargins(0, top, 0, 0);
-                    nowLineView.setLayoutParams(viewParams);
-                    eventsView.addView(nowLineView);
-                }
-            }
-        }, 100);
+//        final Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                handler.removeCallbacks(this);
+//
+//                //setting the events
+//                for (int j = 0; j < dayHourTimes.length; j++) {
+//                    int parentWidth = eventsView.getWidth();
+//                    List<EventObject> filteredEvents = getCalendarEvents(j);
+//                    int size = filteredEvents.size();
+//                    int eventWidth;
+//                    if (size > 0) {
+//                        //send end time to compare with start time
+//                        EventObject filteredObject = filteredEvents.get(size - 1);
+//                        if (!filteredObject.isMarked()) {
+//                            List<EventObject> allOverlappingEvents = checkEndTimeEvents(filteredEvents, parentWidth, j);
+//                            int endTimeEventsSize = allOverlappingEvents.size();
+//                            eventWidth = parentWidth / endTimeEventsSize; //Calculating the width based on events
+//                            showLog("Total event count:::::" + (endTimeEventsSize));
+//
+//                            int calculatedWidth = startTimeCalculation(filteredEvents);
+//                            if (calculatedWidth > 0) {
+//                                parentWidth = parentWidth - calculatedWidth;
+//                                eventWidth = parentWidth / endTimeEventsSize;
+//                                //adjusting the left margin again. Since there is a difference in width.
+//                                int count = 0;
+//                                int avgWidth = eventWidth;
+//                                for (EventObject tempObj : allOverlappingEvents) {
+//                                    tempObj.setLeftMargin(count * avgWidth);
+//                                    count++;
+//                                }
+//                            }
+//                            if (allOverlappingEvents.size() > MAX_EVENTS_SIZE) {
+//                                Collections.sort(allOverlappingEvents, new CustomDurationComparator());
+//                                float maxPercent = 85.0f;
+//                                float minPercent = 15.0f;
+//                                float totalPercent = 100.0f;
+//                                int threeEventsWidth = (int) (parentWidth * (maxPercent / totalPercent));
+//                                showLog("Three events width:::::" + threeEventsWidth);
+//                                int additionalEventsWidth = (int) (parentWidth * (minPercent / totalPercent));
+//                                showLog("Additional Events width:::::" + additionalEventsWidth);
+//                                List<EventObject> subList = allOverlappingEvents.subList(0, MAX_EVENTS_SIZE);
+//                                //adjusting the left margin again. Since there is a difference in width.
+//                                //for the first three events
+//                                int count = 0;
+//                                eventWidth = threeEventsWidth / MAX_EVENTS_SIZE;
+//                                int avgWidth = eventWidth;
+//                                for (EventObject tempObj : subList) {
+//                                    tempObj.setLeftMargin(count * avgWidth);
+//                                    count++;
+//                                }
+//                                //draw first three events
+//                                drawOverLappingEvents(subList, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
+//                                //additional event overlay
+//                                List<EventObject> additionalList = allOverlappingEvents.subList(MAX_EVENTS_SIZE, allOverlappingEvents.size());
+//                                //creating additional event object overlay
+//                                List<EventObject> tempList = new ArrayList<>();
+//                                tempList.add(getAdditionalEventsObject(j, threeEventsWidth, additionalList));
+//                                //draw additional event
+//                                drawOverLappingEvents(tempList, additionalEventsWidth, Gravity.CENTER_HORIZONTAL, ADDITIONAL_EVENT_TEXT_SIZE);
+//                            } else {
+//                                //if size <=3 then draw the events
+//                                drawOverLappingEvents(allOverlappingEvents, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
+//                            }
+//                        }
+//                    }
+//                }
+//                if (showNowLine) {
+//                    View nowLineView = new View(getContext());
+//                    nowLineView.setBackgroundColor(Color.MAGENTA);
+//                    RelativeLayout.LayoutParams viewParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
+//                            (int) convertDpToPixel(1, getContext()));
+//                    Calendar nowCalendar = Calendar.getInstance();
+//                    int currentHour = nowCalendar.get(Calendar.HOUR_OF_DAY);
+//                    int currentMinutes = nowCalendar.get(Calendar.MINUTE);
+//                    int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * currentHour) + currentMinutes + DIVIDER_LINE_MARGIN_TOP, getContext());
+//                    viewParams.setMargins(0, top, 0, 0);
+//                    nowLineView.setLayoutParams(viewParams);
+//                    eventsView.addView(nowLineView);
+//                }
+//            }
+//        }, 100);
         return view;
     }
 
@@ -260,7 +263,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
     private synchronized List<EventObject> checkEndTimeEvents(List<EventObject> filteredEvents, int totalWidth, int hourLineValue) {
         List<EventObject> finalList = new ArrayList<>();
         HashSet<EventObject> mainList = new HashSet<>();
-        mainList.addAll(filteredEvents);//adding all the events. For multiple events from same hour line.
+//        mainList.addAll(filteredEvents);//adding all the events. For multiple events from same hour line.
         Set<String> eventIds = new TreeSet<>();
 
         for (EventObject eventObject : filteredEvents) {//considering multiple events on same hour line
@@ -275,17 +278,14 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                 Calendar startTimeCalendar = object.getStartTime();
                 Calendar endTimeCalendar = object.getEndTime();
 
-                if (startHour == startTimeCalendar.get(Calendar.HOUR_OF_DAY)) {
-                    //do nothing
-
-                } else if (!object.isMarked() && checkTimeRange(startTimeCalendar, endTimeCalendar, eventObject.getEndTime())) {
+                if (!object.isMarked() && checkTimeRange(startTimeCalendar, endTimeCalendar, eventObject.getEndTime()) && !object.getId().equalsIgnoreCase(eventObject.getId())) {
                     eventIds.add(object.getId());
                     showLog("Event ID" + object.getId() + "::Start Hour: " + startTimeCalendar.get(Calendar.HOUR_OF_DAY) + "::End Hour: " + endTimeCalendar.get(Calendar.HOUR_OF_DAY));
                     List<EventObject> eventObjectList = checkAdditionalEndTimeDependents(object, eventIds);
                     showLog("Dependents size:::::" + eventObjectList.size());
                     mainList.addAll(eventObjectList);
                     mainList.add(object);
-                } else if (!object.isMarked() && endTimeGreaterThanEventStartTime(eventObject.getEndTime(), startTimeCalendar)) {
+                } else if (!object.isMarked() && endTimeGreaterThanEventStartTime(eventObject.getEndTime(), startTimeCalendar) && !object.getId().equalsIgnoreCase(eventObject.getId())) {
                     eventIds.add(object.getId());
                     List<EventObject> eventObjectList = checkAdditionalEndTimeDependents(object, eventIds);
                     mainList.addAll(eventObjectList);
@@ -606,39 +606,39 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
     }
 
     private void setCalendarEvents() {
-        //event 1
-        EventObject eventObject = new EventObject("1", "2:30AM to 4AM event", 2, 30, 4, 0);
-        eventsList.add(eventObject);
-        //event 2
-        eventObject = new EventObject("2", "2:30AM to 4AM event", 2, 30, 4, 0);
-        eventsList.add(eventObject);
-        //event 3
-        eventObject = new EventObject("3", "3AM to 6AM event", 3, 0, 6, 0);
-        eventsList.add(eventObject);
-        //event 4
-        eventObject = new EventObject("4", "2:30AM to 6AM event",2, 30, 6, 0);
-        eventsList.add(eventObject);
-        //event 5
-        eventObject = new EventObject("5", "1AM to 4AM event", 1, 0, 4, 0);
-        eventsList.add(eventObject);
-        //event 6
-        eventObject = new EventObject("6", "5AM to 6AM event", 5, 0, 6, 0);
-        eventsList.add(eventObject);
-        //event 7
-        eventObject = new EventObject("7", "6AM to 7AM event", 6, 0, 7, 0);
-        eventsList.add(eventObject);
-        //event 8
-        eventObject = new EventObject("8", "7AM to 8AM event", 7, 0, 8, 0);
-        eventsList.add(eventObject);
-        //event 9
-        eventObject = new EventObject("9", "7.30AM to 8.30AM event", 7, 30, 8, 30);
-        eventsList.add(eventObject);
-        //event 10
-        eventObject = new EventObject("10", "8AM to 9AM event",8,0,9,0);
-        eventsList.add(eventObject);
-        //event 11
-        eventObject = new EventObject("11", "7AM to 11AM event", 7,0,11,0);
-        eventsList.add(eventObject);
+//        //event 1
+//        EventObject eventObject = new EventObject("1", "2:30AM to 4AM event", 2, 30, 4, 0);
+//        eventsList.add(eventObject);
+//        //event 2
+//        eventObject = new EventObject("2", "2:30AM to 4AM event", 2, 30, 4, 0);
+//        eventsList.add(eventObject);
+//        //event 3
+//        eventObject = new EventObject("3", "3AM to 6AM event", 3, 0, 6, 0);
+//        eventsList.add(eventObject);
+//        //event 4
+//        eventObject = new EventObject("4", "2:30AM to 6AM event",2, 30, 6, 0);
+//        eventsList.add(eventObject);
+//        //event 5
+//        eventObject = new EventObject("5", "1AM to 4AM event", 1, 0, 4, 0);
+//        eventsList.add(eventObject);
+//        //event 6
+//        eventObject = new EventObject("6", "5AM to 6AM event", 5, 0, 6, 0);
+//        eventsList.add(eventObject);
+//        //event 7
+//        eventObject = new EventObject("7", "6AM to 7AM event", 6, 0, 7, 0);
+//        eventsList.add(eventObject);
+//        //event 8
+//        eventObject = new EventObject("8", "7AM to 8AM event", 7, 0, 8, 0);
+//        eventsList.add(eventObject);
+//        //event 9
+//        eventObject = new EventObject("9", "7.30AM to 8.30AM event", 7, 30, 8, 30);
+//        eventsList.add(eventObject);
+//        //event 10
+//        eventObject = new EventObject("10", "8AM to 9AM event",8,0,9,0);
+//        eventsList.add(eventObject);
+//        //event 11
+//        eventObject = new EventObject("11", "7AM to 11AM event", 7,0,11,0);
+//        eventsList.add(eventObject);
 
 //        //event 12
 //        eventObject = new EventObject();
@@ -657,15 +657,16 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 //
 //        eventsList.add(eventObject);
 
-        //event 13
-        eventObject = new EventObject("13", "6AM to 7AM event",6,0,7,0);
-        eventsList.add(eventObject);
-        //event 14
-        eventObject = new EventObject("14", "6AM to 7AM event",6,0,7,0);
-        eventsList.add(eventObject);
-        //event 15
-        eventObject = new EventObject("15", "6AM to 7AM event", 6,0,7,0);
-        eventsList.add(eventObject);
+//        //event 13
+//        eventObject = new EventObject("13", "6AM to 7AM event",6,0,7,0);
+//        eventsList.add(eventObject);
+//        //event 14
+//        eventObject = new EventObject("14", "6AM to 7AM event",6,0,7,0);
+//        eventsList.add(eventObject);
+//        //event 15
+//        eventObject = new EventObject("15", "6AM to 7AM event", 6,0,7,0);
+//        eventsList.add(eventObject);
+
 //        //event 16
 //        eventObject = new EventObject();
 //        eventObject.setId("16");
@@ -683,26 +684,124 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 //
 //        eventsList.add(eventObject);
 
-        //event 17
-        eventObject = new EventObject("17", "5.30AM to 6.30PM event",5,30, 6,30);
+//        //event 17
+//        eventObject = new EventObject("17", "5.30AM to 6.30PM event",5,30, 6,30);
+//        eventsList.add(eventObject);
+//        //event 18
+//        eventObject = new EventObject("18", "9AM to 11AM event",9,0,11,0);
+//        eventsList.add(eventObject);
+//        //event 19
+//        eventObject = new EventObject("19", "10AM to 11AM event",10, 0,11,0);
+//        eventsList.add(eventObject);
+//        //event 20
+//        eventObject = new EventObject("20", "6.30AM to 8AM event", 6,30,8,0);
+//        eventsList.add(eventObject);
+//        //event 21
+//        eventObject = new EventObject("21", "1PM to 2PM event",13,0,14,0);
+//        eventsList.add(eventObject);
+//        //event 22
+//        eventObject = new EventObject("22", "2PM to 2:30PM event", 14,0,14,30);
+//        eventsList.add(eventObject);
+
+        ///////////////////////////////////////////////////////////////////////////
+        //event 1
+        EventObject eventObject = new EventObject("1", "8:15AM to 8:30AM event", 8, 15, 8, 30);
         eventsList.add(eventObject);
-        //event 18
-        eventObject = new EventObject("18", "9AM to 11AM event",9,0,11,0);
+        //event 10
+        eventObject = new EventObject("10", "11:00AM to 12:00PM event", 11, 0, 13, 0);
         eventsList.add(eventObject);
-        //event 19
-        eventObject = new EventObject("19", "10AM to 11AM event",10, 0,11,0);
+        //event 4
+        eventObject = new EventObject("4", "9:42AM to 10:42AM event", 9, 42, 10, 42);
         eventsList.add(eventObject);
-        //event 20
-        eventObject = new EventObject("20", "6.30AM to 8AM event", 6,30,8,0);
+        //event 6
+        eventObject = new EventObject("6", "10:15AM to 10:45AM event", 10, 15, 10, 45);
         eventsList.add(eventObject);
-        //event 21
-        eventObject = new EventObject("21", "1PM to 2PM event",13,0,14,0);
+//        //event 8
+//        eventObject = new EventObject("8", "10:30AM to 11:30AM event", 10, 30, 11, 30);
+//        eventsList.add(eventObject);
+//        //event 9
+//        eventObject = new EventObject("9", "10:30AM to 11:30AM event", 10, 30, 11, 30);
+//        eventsList.add(eventObject);
+        //event 2
+        eventObject = new EventObject("2", "8:30AM to 9:00AM event", 8, 30, 9, 0);
         eventsList.add(eventObject);
-        //event 22
-        eventObject = new EventObject("22", "2PM to 2:30PM event", 14,0,14,30);
+        //event 5
+        eventObject = new EventObject("5", "10:00AM to 11:00AM event", 10, 0, 11, 0);
+        eventsList.add(eventObject);
+        //event 7
+        eventObject = new EventObject("7", "10:30AM to 11:30AM event", 10, 30, 11, 30);
+        eventsList.add(eventObject);
+        //event 3
+        eventObject = new EventObject("3", "8:53AM to 9:53AM event", 8, 53, 9, 53);
         eventsList.add(eventObject);
 
-        Collections.sort(eventsList, new CustomDurationComparator());
+
+        Collections.sort(eventsList, new Comparator<EventObject>() {
+            public int compare(EventObject o1, EventObject o2) {
+                return o1.getStartTime().compareTo(o2.getStartTime());
+            }
+        });
+        for (EventObject object : eventsList) {
+            showLog("Event id: " + object.getId());
+            showLog("Event start time: " + object.getName());
+            showLog("===============================================");
+        }
+        List<EventObject> tempEventsList = new ArrayList<>();
+        tempEventsList.addAll(eventsList);
+        manipulateOverlappingEvents(tempEventsList);
+
+//        Collections.sort(eventsList, new CustomDurationComparator());
+    }
+
+    private void manipulateOverlappingEvents(List<EventObject> tempEventsList) {
+//        HashMap<String, List<EventObject>> mappedObjects = new HashMap<>();
+        List<EventObject> overlappingEventObjects = new ArrayList<>();
+        showLog("Temp list before size: " + tempEventsList.size());
+        for (Iterator<EventObject> iterator = tempEventsList.iterator(); iterator.hasNext(); ) {
+            EventObject iteratorEventObject = iterator.next();
+            showLog("Iterator event object id: "+iteratorEventObject.getId());
+            showLog("Iterator event object name: "+iteratorEventObject.getName());
+            overlappingEventObjects = getOverlappingEventObjects(iteratorEventObject);
+            showLog("Iterator object mapped events: "+overlappingEventObjects.size());
+            mappedEventObjects = new ArrayList<>();
+//            mappedObjects.put(iteratorEventObject.getId(), overlappingEventObjects);
+            iterator.remove();
+            showLog("================================================================");
+            if (overlappingEventObjects.size() > 0) {
+                break;
+            }
+        }
+
+        for (EventObject obj: overlappingEventObjects) {
+            for (Iterator<EventObject> innerIterator = tempEventsList.iterator(); innerIterator.hasNext(); ) {
+                EventObject innerIteratorObject = innerIterator.next();
+                if (obj.getId().equalsIgnoreCase(innerIteratorObject.getId())) {
+                    innerIterator.remove();
+                }
+            }
+        }
+
+        if (tempEventsList.size() > 0) {
+            manipulateOverlappingEvents(tempEventsList);
+        }
+        showLog("Temp list after size: " + tempEventsList.size());
+    }
+
+    List<EventObject> mappedEventObjects = new ArrayList<>();
+    private List<EventObject> getOverlappingEventObjects(EventObject iteratorEventObject) {
+
+        int size = eventsList.size();
+        for (int i = 0; i < size; i++) {
+            if (!iteratorEventObject.getId().equalsIgnoreCase(eventsList.get(i).getId()) && !eventsList.get(i).isMarked()) {
+                boolean fallsInTime = checkTimeRange(eventsList.get(i).getStartTime(), eventsList.get(i).getEndTime(), iteratorEventObject.getEndTime());
+                if (fallsInTime) {
+                    eventsList.get(i).setMarked(true);
+                    mappedEventObjects.add(eventsList.get(i));
+                    getOverlappingEventObjects(eventsList.get(i));
+                }
+            }
+        }
+        return mappedEventObjects;
     }
 
     @Override
