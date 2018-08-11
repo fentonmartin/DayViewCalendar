@@ -801,6 +801,15 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                 }
             }
         }
+        //Also marking the sent object
+        if (!iteratorEventObject.isMarked()) {
+            for (int j = 0; j < size; j++) {
+                if (iteratorEventObject.getId().equalsIgnoreCase(eventsList.get(j).getId())) {
+                    eventsList.get(j).setMarked(true);
+                    iteratorEventObject.setMarked(true);//to skip multiple iterations, this is necessary
+                }
+            }
+        }
         return mappedEventObjects;
     }
 
