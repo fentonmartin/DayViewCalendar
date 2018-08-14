@@ -115,4 +115,9 @@ public class EventObject {
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }
