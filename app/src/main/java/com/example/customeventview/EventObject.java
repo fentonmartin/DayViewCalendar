@@ -8,10 +8,13 @@ public class EventObject {
     private String name;
     private Calendar startTime;
     private Calendar endTime;
-    private String duration;
-    private int eventsCount;
     private int leftMargin;
-    private int eventWidth;
+    private int topMargin;
+    private int eventHeight;
+    private int X1;
+    private int Y1;
+    private int X2;
+    private int Y2;
 
     public EventObject() {
 
@@ -68,28 +71,12 @@ public class EventObject {
         this.endTime = endTime;
     }
 
-    public String getDuration() {
-        return duration;
-    }
-
-    public void setDuration(String duration) {
-        this.duration = duration;
-    }
-
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public int getEventsCount() {
-        return eventsCount;
-    }
-
-    public void setEventsCount(int eventsCount) {
-        this.eventsCount = eventsCount;
     }
 
     public int getLeftMargin() {
@@ -100,12 +87,52 @@ public class EventObject {
         this.leftMargin = leftMargin;
     }
 
-    public int getEventWidth() {
-        return eventWidth;
+    public int getX1() {
+        return X1;
     }
 
-    public void setEventWidth(int eventWidth) {
-        this.eventWidth = eventWidth;
+    public void setX1(int x1) {
+        X1 = x1;
+    }
+
+    public int getY1() {
+        return Y1;
+    }
+
+    public void setY1(int y1) {
+        Y1 = y1;
+    }
+
+    public int getX2() {
+        return X2;
+    }
+
+    public void setX2(int x2) {
+        X2 = x2;
+    }
+
+    public int getY2() {
+        return Y2;
+    }
+
+    public void setY2(int y2) {
+        Y2 = y2;
+    }
+
+    public int getEventHeight() {
+        return eventHeight;
+    }
+
+    public void setEventHeight(int eventHeight) {
+        this.eventHeight = eventHeight;
+    }
+
+    public int getTopMargin() {
+        return topMargin;
+    }
+
+    public void setTopMargin(int topMargin) {
+        this.topMargin = topMargin;
     }
 
     @Override

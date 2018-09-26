@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
-import java.util.TreeSet;
 
 
 /**
@@ -159,13 +158,8 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
             } else {
                 //if size <=3 then draw the events
                 eventWidth = parentWidth / groupedEvents.size();
-                int count = 0;
-                int avgWidth = eventWidth;
-                for (EventObject tempObj : groupedEvents) {
-                    tempObj.setLeftMargin(count * avgWidth);
-                    count++;
-                }
-                drawOverLappingEvents(groupedEvents, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
+                //Calculates the event margins and then draws the events
+                calculateEventMargins(groupedEvents, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
             }
         }
         //shows the now line
@@ -209,6 +203,105 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
             textViewParams.setMargins(left, top, 0, 0);
             eventsView.addView(getTextView(textViewParams, eventObject, ContextCompat.getColor(getContext(), R.color.colorPrimary), textGravity, textSize));
         }
+    }
+
+    /**
+     * Draws the events on views
+     *
+     * @param allOverlappingEvents
+     * @param eventWidth
+     * @param textGravity
+     * @param textSize
+     */
+    private void drawEventsOnView(List<EventObject> allOverlappingEvents, int eventWidth, int textGravity, int textSize) {
+        int size = allOverlappingEvents.size();
+        for (int k = 0; k < size; k++) {
+            EventObject eventObject = allOverlappingEvents.get(k);
+            //No size conversion, pass direct pixels for width
+            RelativeLayout.LayoutParams textViewParams = new RelativeLayout.LayoutParams((int) (eventWidth - EVENT_GAP),
+                    eventObject.getEventHeight());
+            int top = eventObject.getTopMargin();
+            int left = eventObject.getLeftMargin();
+            textViewParams.setMargins(left, top, 0, 0);
+            eventsView.addView(getTextView(textViewParams, eventObject, ContextCompat.getColor(getContext(), R.color.colorPrimary), textGravity, textSize));
+        }
+    }
+
+    /**
+     * Creates the margins of events
+     *
+     * @param allOverlappingEvents
+     * @param eventWidth
+     * @param textGravity
+     * @param textSize
+     */
+    private void calculateEventMargins(List<EventObject> allOverlappingEvents, int eventWidth, int textGravity, int textSize) {
+        int size = allOverlappingEvents.size();
+        for (int k = 0; k < size; k++) {
+            EventObject eventObject = allOverlappingEvents.get(k);
+            int[] startTime = getStartTime(eventObject.getStartTime());
+            int[] endTime = getEndTime(eventObject.getEndTime());
+            //0 -> hour & 1 -> minute
+            int eventHeight = (int) ((HOUR_VIEW_HEIGHT * endTime[0]) + endTime[1] + DIVIDER_LINE_MARGIN_TOP)
+                    - (int) ((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP);
+            eventHeight = (int) convertDpToPixel(eventHeight, getContext());
+            eventObject.setEventHeight(eventHeight);
+            showLog("Event Id:::::" + eventObject.getId());
+            showLog("Event height:::::" + eventHeight);
+            showLog("Event width:::::" + eventWidth);
+
+            int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP, getContext());
+            eventObject.setTopMargin(top);
+            int left = 0;//Initially, by default, left margin will be zero
+            showLog("X1: " + left);
+            eventObject.setX1(left);
+            showLog("Y1: " + top);
+            eventObject.setY1(top);
+            showLog("X2:::::" + (left + eventWidth));
+            eventObject.setX2(left + eventWidth);
+            showLog("Y2:::::" + (top + eventHeight));
+            eventObject.setY2(top + eventHeight);
+            showLog("==============================");
+        }
+        //check collision detection
+        List<EventObject> tempList = new ArrayList<>();
+        if (allOverlappingEvents.size() > 0) {
+            EventObject firstObject = allOverlappingEvents.get(0);
+            tempList.add(firstObject);
+            allOverlappingEvents.remove(0);//removing the first object initially
+            if (allOverlappingEvents.size() > 0) {
+                for (Iterator<EventObject> iterator = allOverlappingEvents.iterator(); iterator.hasNext(); ) {
+                    EventObject tempObject = iterator.next();
+                    int marginMultiplier = detectCollision(tempList, tempObject, eventWidth);//detects collision
+                    tempObject.setLeftMargin(marginMultiplier * eventWidth);
+                    tempList.add(tempObject);
+                    showLog("=====================================================");
+                    iterator.remove();
+                }
+            }
+        }
+        drawEventsOnView(tempList, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);//draws the events
+    }
+
+    /**
+     * Code block to check whether two rectangles are colliding and adjusts the margin accordingly
+     *
+     * @param tempList
+     * @param tempObject
+     * @return
+     */
+    private int detectCollision(List<EventObject> tempList, EventObject tempObject, int eventWidth) {
+        int count = 0;
+        for (int i = 0; i < tempList.size(); i++) {
+            if (tempList.get(i).getX1() < tempObject.getX2() &&
+                    tempList.get(i).getX2() > tempObject.getX1() &&
+                    tempList.get(i).getY1() < tempObject.getY2() &&
+                    tempList.get(i).getY2() > tempObject.getY1()) {
+                showLog("ID " + tempObject.getId() + " overlaps with, ID " + tempList.get(i).getId());
+                count++;
+            }
+        }
+        return count;
     }
 
     private TextView getTextView(RelativeLayout.LayoutParams textViewParams, EventObject eventObject, int eventColor, int textGravity, int textSize) {
@@ -584,30 +677,30 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
         //event 1
         EventObject eventObject = new EventObject("1", "8:15AM to 8:30AM event", 8, 15, 8, 30);
         eventsList.add(eventObject);
-        //event 10
-        eventObject = new EventObject("10", "11:00AM to 12:00PM event", 11, 0, 13, 0);
-        eventsList.add(eventObject);
+//        //event 10
+//        eventObject = new EventObject("10", "11:00AM to 12:00PM event", 11, 0, 13, 0);
+//        eventsList.add(eventObject);
         //event 4
         eventObject = new EventObject("4", "9:42AM to 10:42AM event", 9, 42, 10, 42);
         eventsList.add(eventObject);
-        //event 6
-        eventObject = new EventObject("6", "10:15AM to 10:45AM event", 10, 15, 10, 45);
-        eventsList.add(eventObject);
-        //event 8
-        eventObject = new EventObject("8", "10:30AM to 11:30AM event", 10, 30, 11, 30);
-        eventsList.add(eventObject);
+//        //event 6
+//        eventObject = new EventObject("6", "10:15AM to 10:45AM event", 10, 15, 10, 45);
+//        eventsList.add(eventObject);
+//        //event 8
+//        eventObject = new EventObject("8", "10:30AM to 11:30AM event", 10, 30, 11, 30);
+//        eventsList.add(eventObject);
         //event 9
         eventObject = new EventObject("9", "10:30AM to 11:30AM event", 10, 30, 11, 30);
         eventsList.add(eventObject);
-        //event 2
-        eventObject = new EventObject("2", "8:30AM to 9:00AM event", 8, 30, 9, 0);
-        eventsList.add(eventObject);
-        //event 5
-        eventObject = new EventObject("5", "10:00AM to 11:00AM event", 10, 0, 11, 0);
-        eventsList.add(eventObject);
-        //event 7
-        eventObject = new EventObject("7", "10:30AM to 11:30AM event", 10, 30, 11, 30);
-        eventsList.add(eventObject);
+//        //event 2
+//        eventObject = new EventObject("2", "8:30AM to 9:00AM event", 8, 30, 9, 0);
+//        eventsList.add(eventObject);
+//        //event 5
+//        eventObject = new EventObject("5", "10:00AM to 11:00AM event", 10, 0, 11, 0);
+//        eventsList.add(eventObject);
+//        //event 7
+//        eventObject = new EventObject("7", "10:30AM to 11:30AM event", 10, 30, 11, 30);
+//        eventsList.add(eventObject);
         //event 3
         eventObject = new EventObject("3", "8:53AM to 9:53AM event", 8, 53, 9, 53);
         eventsList.add(eventObject);
