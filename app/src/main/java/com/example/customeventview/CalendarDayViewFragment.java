@@ -299,6 +299,9 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                     tempList.get(i).getY2() > tempObject.getY1()) {
                 showLog("ID " + tempObject.getId() + " overlaps with, ID " + tempList.get(i).getId());
                 count++;
+                if (tempList.get(i).getLeftMargin() != 0) {//In cases where there can be two events on the left side
+                    count++;
+                }
             }
         }
         return count;
@@ -689,12 +692,12 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 //        //event 8
 //        eventObject = new EventObject("8", "10:30AM to 11:30AM event", 10, 30, 11, 30);
 //        eventsList.add(eventObject);
-        //event 9
-        eventObject = new EventObject("9", "10:30AM to 11:30AM event", 10, 30, 11, 30);
-        eventsList.add(eventObject);
-//        //event 2
-//        eventObject = new EventObject("2", "8:30AM to 9:00AM event", 8, 30, 9, 0);
+//        //event 9
+//        eventObject = new EventObject("9", "10:30AM to 11:30AM event", 10, 30, 11, 30);
 //        eventsList.add(eventObject);
+        //event 2
+        eventObject = new EventObject("2", "8:30AM to 9:00AM event", 8, 30, 9, 0);
+        eventsList.add(eventObject);
 //        //event 5
 //        eventObject = new EventObject("5", "10:00AM to 11:00AM event", 10, 0, 11, 0);
 //        eventsList.add(eventObject);
