@@ -11,6 +11,7 @@ public class EventObject {
     private int leftMargin;
     private int topMargin;
     private int eventHeight;
+    private int countMultiplier;
     private int X1;
     private int Y1;
     private int X2;
@@ -133,6 +134,14 @@ public class EventObject {
 
     public void setTopMargin(int topMargin) {
         this.topMargin = topMargin;
+    }
+
+    public int getCountMultiplier() {
+        return countMultiplier;
+    }
+
+    public void setCountMultiplier(int countMultiplier) {
+        this.countMultiplier = countMultiplier;
     }
 
     @Override
