@@ -137,26 +137,9 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                 showLog("Three events width:::::" + threeEventsWidth);
                 int additionalEventsWidth = (int) (parentWidth * (minPercent / totalPercent));
                 showLog("Additional Events width:::::" + additionalEventsWidth);
-//                List<EventObject> subList = groupedEvents.subList(0, MAX_EVENTS_SIZE);
-                //adjusting the left margin again. Since there is a difference in width.
-                //for the first three events
-//                int count = 0;
+
                 eventWidth = threeEventsWidth / MAX_EVENTS_SIZE;
                 calculateEventMargins(groupedEvents, eventWidth, threeEventsWidth, additionalEventsWidth);
-//                int avgWidth = eventWidth;
-//                for (EventObject tempObj : subList) {
-//                    tempObj.setLeftMargin(count * avgWidth);
-//                    count++;
-//                }
-                //draw first three events
-//                drawOverLappingEvents(subList, eventWidth, Gravity.NO_GRAVITY, STANDARD_EVENT_TEXT_SIZE);
-                //additional event overlay
-//                List<EventObject> additionalList = groupedEvents.subList(MAX_EVENTS_SIZE, groupedEvents.size());
-                //creating additional event object overlay
-//                List<EventObject> tempList = new ArrayList<>();
-//                tempList.add(getAdditionalEventsObject(threeEventsWidth, additionalList));
-                //draw additional event
-//                drawOverLappingEvents(tempList, additionalEventsWidth, Gravity.CENTER_HORIZONTAL, ADDITIONAL_EVENT_TEXT_SIZE);
             } else {
                 //if size <=3 then draw the events
                 eventWidth = parentWidth / groupedEvents.size();
@@ -180,32 +163,32 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
         }
     }
 
-    /**
-     * Overlays all the events and its dependent child events
-     *
-     * @param allOverlappingEvents
-     * @param eventWidth
-     * @param textGravity
-     * @param textSize
-     */
-    private void drawOverLappingEvents(List<EventObject> allOverlappingEvents, int eventWidth, int textGravity, int textSize) {
-        int size = allOverlappingEvents.size();
-        for (int k = 0; k < size; k++) {
-            EventObject eventObject = allOverlappingEvents.get(k);
-            int[] startTime = getStartTime(eventObject.getStartTime());
-            int[] endTime = getEndTime(eventObject.getEndTime());
-            //0 -> hour & 1 -> minute
-            int eventHeight = (int) ((HOUR_VIEW_HEIGHT * endTime[0]) + endTime[1] + DIVIDER_LINE_MARGIN_TOP)
-                    - (int) ((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP);
-            //No size conversion, pass direct pixels for width
-            RelativeLayout.LayoutParams textViewParams = new RelativeLayout.LayoutParams((int) (eventWidth - EVENT_GAP),
-                    (int) convertDpToPixel(eventHeight, getContext()));
-            int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP, getContext());
-            int left = eventObject.getLeftMargin();
-            textViewParams.setMargins(left, top, 0, 0);
-            eventsView.addView(getTextView(textViewParams, eventObject, ContextCompat.getColor(getContext(), R.color.colorPrimary), textGravity, textSize));
-        }
-    }
+//    /**
+//     * Overlays all the events and its dependent child events
+//     *
+//     * @param allOverlappingEvents
+//     * @param eventWidth
+//     * @param textGravity
+//     * @param textSize
+//     */
+//    private void drawOverLappingEvents(List<EventObject> allOverlappingEvents, int eventWidth, int textGravity, int textSize) {
+//        int size = allOverlappingEvents.size();
+//        for (int k = 0; k < size; k++) {
+//            EventObject eventObject = allOverlappingEvents.get(k);
+//            int[] startTime = getStartTime(eventObject.getStartTime());
+//            int[] endTime = getEndTime(eventObject.getEndTime());
+//            //0 -> hour & 1 -> minute
+//            int eventHeight = (int) ((HOUR_VIEW_HEIGHT * endTime[0]) + endTime[1] + DIVIDER_LINE_MARGIN_TOP)
+//                    - (int) ((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP);
+//            //No size conversion, pass direct pixels for width
+//            RelativeLayout.LayoutParams textViewParams = new RelativeLayout.LayoutParams((int) (eventWidth - EVENT_GAP),
+//                    (int) convertDpToPixel(eventHeight, getContext()));
+//            int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP, getContext());
+//            int left = eventObject.getLeftMargin();
+//            textViewParams.setMargins(left, top, 0, 0);
+//            eventsView.addView(getTextView(textViewParams, eventObject, ContextCompat.getColor(getContext(), R.color.colorPrimary), textGravity, textSize));
+//        }
+//    }
 
     /**
      * Draws the events on views
@@ -277,6 +260,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                     tempObject.setCountMultiplier(marginMultiplier);
                     if (marginMultiplier > MARGIN_MULTIPLIER_MAX_SIZE) {
                         popUpList.add(tempObject);
+                        showLog("Popup list object: " + tempObject.getName() + " with ID: " + tempObject.getId() + " has count multiplier: " + tempObject.getCountMultiplier());
                     } else {
                         tempObject.setLeftMargin(marginMultiplier * eventWidth);
                         tempList.add(tempObject);
@@ -293,7 +277,8 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
             List<EventObject> additionalList = new ArrayList<>();
             additionalList.add(getAdditionalEventsObject(threeEventsWidth, popUpList));
             //draw additional event
-            drawOverLappingEvents(additionalList, additionalEventsWidth, Gravity.CENTER_HORIZONTAL, ADDITIONAL_EVENT_TEXT_SIZE);
+//            drawOverLappingEvents(additionalList, additionalEventsWidth, Gravity.CENTER_HORIZONTAL, ADDITIONAL_EVENT_TEXT_SIZE);
+            drawEventsOnView(additionalList, additionalEventsWidth, Gravity.CENTER_HORIZONTAL, ADDITIONAL_EVENT_TEXT_SIZE);
         }
     }
 
@@ -313,7 +298,10 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
                     tempList.get(i).getY2() > tempObject.getY1()) {
                 showLog("ID " + tempObject.getId() + " overlaps with, ID " + tempList.get(i).getId());
                 count++;
-                if (tempList.get(i).getCountMultiplier() != 0) {//In cases where there can be two events on the left side
+                if (tempList.get(i).getCountMultiplier() != 0 &&
+                        tempList.get(i).getX1() == tempObject.getX1() &&
+                        tempList.get(i).getX2() == tempObject.getX2()) {//In cases where there can be two events on the left side. Also, checking with the same X-axis, as two events can have same.
+                    showLog("Additional count with ID " + tempList.get(i).getId() + " has count multiplier "+tempList.get(i).getCountMultiplier());
                     count = count + tempList.get(i).getCountMultiplier();
                 }
             }
@@ -588,6 +576,17 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
             endCalendar.set(Calendar.MINUTE, startCalendar.get(Calendar.MINUTE));
             endCalendar.add(Calendar.MINUTE, 30);
             additionalEvenObject.setEndTime(endCalendar);
+
+            int[] startTime = getStartTime(additionalEvenObject.getStartTime());
+            int[] endTime = getEndTime(additionalEvenObject.getEndTime());
+            //0 -> hour & 1 -> minute
+            int eventHeight = (int) ((HOUR_VIEW_HEIGHT * endTime[0]) + endTime[1] + DIVIDER_LINE_MARGIN_TOP)
+                    - (int) ((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP);
+            eventHeight = (int) convertDpToPixel(eventHeight, getContext());
+            additionalEvenObject.setEventHeight(eventHeight);
+
+            int top = (int) convertDpToPixel((HOUR_VIEW_HEIGHT * startTime[0]) + startTime[1] + DIVIDER_LINE_MARGIN_TOP, getContext());
+            additionalEvenObject.setTopMargin(top);
         }
         return additionalEvenObject;
     }
@@ -623,7 +622,7 @@ public class CalendarDayViewFragment extends DialogFragment implements View.OnLo
 //        //event 10
 //        eventObject = new EventObject("10", "8AM to 9AM event",8,0,9,0);
 //        eventsList.add(eventObject);
-//        //event 11
+//          //event 11
 //        eventObject = new EventObject("11", "7AM to 11AM event", 7,0,11,0);
 //        eventsList.add(eventObject);
 
